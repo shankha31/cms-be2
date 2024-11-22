@@ -60,7 +60,7 @@ export default async (req, res) => {
       // Handling the file renaming and saving
       let newFilename = paperUpload[0].newFilename;
       let originalFilename = paperUpload[0].originalFilename;
-      const fileExtension = originalFilename.split('.').pop(); // Get file extension
+      const fileExtension = originalFilename.split('.').pop();
 
       try {
         // Rename and move the file
@@ -70,14 +70,21 @@ export default async (req, res) => {
         );
         console.log('File renamed successfully to:', `${submissionId}.${fileExtension}`);
         var event_name = prisma.eventDetail.findUnique({
-          where: { id: parseInt(eventId[0]) },
+          where: { eventScheduleId: parseInt(eventId[0]) },
         }).eventName;
-        var user_name = userProfileId.firstName + userProfileId.lastName;
-        var user_email = userProfileId.emailAddress;
-        var msg = `Dear ${user_name},\nThank you for your submission! We are pleased to confirm that your submission has been successfully received.\nHere are the details of your submission:\n    Submission Title: ${paperTitle[0]}\n    Abstract:\n    ${abstract[0]}\n    Submission Date: {new Date().toISOString()}\n    Event: ${event_name}\nOur team will carefully review your submission and notify you regarding the next steps soon. \nThank you for contributing to ${event_name}!\nBest regards,\nTech Conference Management System`
+        const user = await prisma.userProfile.findUnique({
+          where: {
+            userProfileId: userProfileId, // Replace with the actual ID
+          },
+        });
+        var user_name = user.firstName + user.lastName;
+        var user_email = user.emailAddress;
+        console.log(user_email, user_name, user);
+
+        var msg = `Dear ${user_name},\nThank you for your submission! We are pleased to confirm that your submission has been successfully received.\nHere are the details of your submission:\n    Submission Title: ${paperTitle[0]}\n    Abstract:\n    ${abstract[0]}\n   Event: ${event_name}\nOur team will carefully review your submission and notify you regarding the next steps soon. \nThank you for contributing to ${event_name}!\nBest regards,\nTech Conference Management System`
         await sendMail(
           user_email,
-          'Attendance Status Update',
+          'Submission Confirmation',
           msg
         );
       } catch (renameErr) {
