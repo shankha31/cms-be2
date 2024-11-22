@@ -26,6 +26,7 @@ mentorshipAsMentee MentorshipProgram[] @relation("Mentee")
 model EventDetail {
 eventDetailId Int @id @default(autoincrement())
 eventName String @db.VarChar(100)
+image String? @db.Text
 eventTicketPrice String
 eventDescription String? @db.Text
 startDate DateTime @db.DateTime
@@ -60,7 +61,7 @@ submissionRecordId Int @id @default(autoincrement())
 eventDetailId Int
 userProfileId Int
 submissionTitle String @db.VarChar(255)
-submissionAbstract String?
+submissionAbstract String? @db.Text
 submissionDate DateTime @default(now())
 submissionStatus SubmissionStatus @default(submitted)
 createdAt DateTime? @default(now())
