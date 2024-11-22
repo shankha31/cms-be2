@@ -4,6 +4,7 @@ import path from "path";
 import fs from 'fs';
 import { getUserProfileFromToken } from "../../../utils/services/auth";
 import { PrismaClient } from "@prisma/client";
+import { sendMail } from "../../../utils/services/sendmail"
 const prisma = new PrismaClient();
 
 export const config = {
@@ -23,7 +24,6 @@ export default async (req, res) => {
     try {
 
       const { userProfileId } = await getUserProfileFromToken(req);
-
       // Directory to store uploaded files
       const uploadDir = path.join(process.cwd(), '/uploads');
       let submissionId;
@@ -48,14 +48,14 @@ export default async (req, res) => {
       // Create new submission record in the database
       const newSubmission = await prisma.submissionRecord.create({
         data: {
-          eventDetailId: parseInt(eventId[0]), // Assuming 'eventDetailId' based on your schema
-          userProfileId: userProfileId, // 'userProfileId' based on your schema
-          submissionTitle: paperTitle[0], // 'submissionTitle' field
-          submissionAbstract: abstract[0], // 'submissionAbstract' field
-          submissionDate: new Date().toISOString(), // 'submissionDate' field
+          eventDetailId: parseInt(eventId[0]),
+          userProfileId: userProfileId,
+          submissionTitle: paperTitle[0],
+          submissionAbstract: abstract[0],
+          submissionDate: new Date().toISOString(),
         },
       });
-      submissionId = newSubmission.submissionRecordId; // Use 'submissionRecordId' as per your schema
+      submissionId = newSubmission.submissionRecordId;
 
       // Handling the file renaming and saving
       let newFilename = paperUpload[0].newFilename;
@@ -69,6 +69,17 @@ export default async (req, res) => {
           path.join(uploadDir, `${submissionId}.${fileExtension}`)
         );
         console.log('File renamed successfully to:', `${submissionId}.${fileExtension}`);
+        var event_name = prisma.eventDetail.findUnique({
+          where: { id: parseInt(eventId[0]) },
+        }).eventName;
+        var user_name = userProfileId.firstName + userProfileId.lastName;
+        var user_email = userProfileId.emailAddress;
+        var msg = `Dear ${user_name},\nThank you for your submission! We are pleased to confirm that your submission has been successfully received.\nHere are the details of your submission:\n    Submission Title: ${paperTitle[0]}\n    Abstract:\n    ${abstract[0]}\n    Submission Date: {new Date().toISOString()}\n    Event: ${event_name}\nOur team will carefully review your submission and notify you regarding the next steps soon. \nThank you for contributing to ${event_name}!\nBest regards,\nTech Conference Management System`
+        await sendMail(
+          user_email,
+          'Attendance Status Update',
+          msg
+        );
       } catch (renameErr) {
         console.error('Error renaming file:', renameErr);
         return res.status(500).json({ error: 'Error renaming file' });

@@ -1,151 +1,153 @@
 generator client {
-  provider = "prisma-client-js"
+provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+provider = "mysql"
+url = env("DATABASE_URL")
 }
 
 model UserProfile {
-  userProfileId     Int             @id @default(autoincrement()) 
-  firstName         String          @db.VarChar(50)
-  lastName          String          @db.VarChar(50)
-  emailAddress      String          @unique @db.VarChar(100) // old: email
-  hashedPassword    String          @db.VarChar(255) // old: password
-  createdAt         DateTime?       @default(now())
-  updatedAt         DateTime?       @updatedAt
-  userRole          UserRole        @default(user) // old: role
-  eventEnrollments  EventEnrollment[]
-  eventSubmissions  SubmissionRecord[]
-  feedbackGiven     Feedback[]      @relation("EvaluatorFeedback") // old: feedbacks
-  mentorshipAsMentor MentorshipProgram[] @relation("Mentor") // old: mentorshipsAsMentor
-  mentorshipAsMentee MentorshipProgram[] @relation("Mentee") // old: mentorshipsAsMentee
+userProfileId Int @id @default(autoincrement())
+firstName String @db.VarChar(50)
+lastName String @db.VarChar(50)
+emailAddress String @unique @db.VarChar(100)
+hashedPassword String @db.VarChar(255)
+createdAt DateTime? @default(now())
+updatedAt DateTime? @updatedAt
+userRole UserRole @default(user)
+eventEnrollments EventEnrollment[]
+eventSubmissions SubmissionRecord[]
+feedbackGiven Feedback[] @relation("EvaluatorFeedback")
+mentorshipAsMentor MentorshipProgram[] @relation("Mentor")
+mentorshipAsMentee MentorshipProgram[] @relation("Mentee")
 }
 
 model EventDetail {
-  eventDetailId     Int             @id @default(autoincrement())
-  eventName         String          @db.VarChar(100) // old: name
-  eventTicketPrice  String          // old: price
-  eventDescription  String?         @db.Text // old: description
-  startDate         DateTime        @db.DateTime // old: startDate
-  endDate           DateTime        @db.DateTime // old: endDate
-  eventLocation     String?         @db.VarChar(255) // old: location
-  meetingLink       String?         @db.VarChar(255) // old: meetingLink
-  recordingLink     String?         @db.VarChar(255) // old: recordingLink
-  createdAt         DateTime?       @default(now())
-  updatedAt         DateTime?       @updatedAt
+eventDetailId Int @id @default(autoincrement())
+eventName String @db.VarChar(100)
+eventTicketPrice String
+eventDescription String? @db.Text
+startDate DateTime @db.DateTime
+endDate DateTime @db.DateTime
+eventLocation String? @db.VarChar(255)
+meetingLink String? @db.VarChar(255)
+recordingLink String? @db.VarChar(255)
+createdAt DateTime? @default(now())
+updatedAt DateTime? @updatedAt
 
-  eventEnrollments  EventEnrollment[] 
-  eventSubmissions  SubmissionRecord[] 
-  eventSchedules    EventSchedule[] 
+eventEnrollments EventEnrollment[]
+eventSubmissions SubmissionRecord[]
+eventSchedules EventSchedule[]
 }
 
 model EventEnrollment {
-  eventEnrollmentId Int             @id @default(autoincrement())
-  userProfileId     Int
-  eventDetailId     Int
-  registrationDate  DateTime        // old: registrationDate
-  ticketType        TicketType
-  paymentStatus     PaymentStatus   @default(pending) // old: paymentStatus
-  createdAt         DateTime?       @default(now())
-  updatedAt         DateTime?       @updatedAt
+eventEnrollmentId Int @id @default(autoincrement())
+userProfileId Int
+eventDetailId Int
+registrationDate DateTime
+ticketType TicketType
+paymentStatus PaymentStatus @default(pending)
+createdAt DateTime? @default(now())
+updatedAt DateTime? @updatedAt
 
-  userProfile       UserProfile     @relation(fields: [userProfileId], references: [userProfileId])
-  eventDetail       EventDetail     @relation(fields: [eventDetailId], references: [eventDetailId],onDelete: Cascade)
+userProfile UserProfile @relation(fields: [userProfileId], references: [userProfileId])
+eventDetail EventDetail @relation(fields: [eventDetailId], references: [eventDetailId],onDelete: Cascade)
 }
 
 model SubmissionRecord {
-  submissionRecordId Int           @id @default(autoincrement())
-  eventDetailId      Int
-  userProfileId      Int
-  submissionTitle    String        @db.VarChar(255) // old: title
-  submissionAbstract String?        // old: abstract
-  submissionDate     DateTime      @default(now()) // old: submissionDate
-  submissionStatus   SubmissionStatus @default(submitted) // old: status
-  createdAt          DateTime?     @default(now())
-  updatedAt          DateTime?     @updatedAt
+submissionRecordId Int @id @default(autoincrement())
+eventDetailId Int
+userProfileId Int
+submissionTitle String @db.VarChar(255)
+submissionAbstract String?
+submissionDate DateTime @default(now())
+submissionStatus SubmissionStatus @default(submitted)
+createdAt DateTime? @default(now())
+updatedAt DateTime? @updatedAt
 
-  eventDetail        EventDetail   @relation(fields: [eventDetailId], references: [eventDetailId],onDelete: Cascade)
-  userProfile        UserProfile   @relation(fields: [userProfileId], references: [userProfileId])
-  submissionFeedbacks Feedback[]    // old: feedbacks
+eventDetail EventDetail @relation(fields: [eventDetailId], references: [eventDetailId],onDelete: Cascade)
+userProfile UserProfile @relation(fields: [userProfileId], references: [userProfileId])
+submissionFeedbacks Feedback[]
 }
 
 model Feedback {
-  feedbackId        Int             @id @default(autoincrement())
-  submissionRecordId Int
-  evaluatorId       Int
-  feedbackComments  String?         // old: comments
-  feedbackRating    Int             // old: rating
-  reviewDate        DateTime?       @default(now()) // old: reviewDate
-  createdAt         DateTime?       @default(now())
-  updatedAt         DateTime?       @updatedAt
+feedbackId Int @id @default(autoincrement())
+submissionRecordId Int
+evaluatorId Int
+feedbackComments String?
+feedbackRating Int
+reviewDate DateTime? @default(now())
+createdAt DateTime? @default(now())
+updatedAt DateTime? @updatedAt
 
-  submissionRecord  SubmissionRecord @relation(fields: [submissionRecordId], references: [submissionRecordId],onDelete: Cascade)
-  evaluator         UserProfile      @relation("EvaluatorFeedback", fields: [evaluatorId], references: [userProfileId])
+submissionRecord SubmissionRecord @relation(fields: [submissionRecordId], references: [submissionRecordId],onDelete: Cascade)
+evaluator UserProfile @relation("EvaluatorFeedback", fields: [evaluatorId], references: [userProfileId])
 }
 
 model EventSchedule {
-  eventScheduleId   Int             @id @default(autoincrement())
-  eventDetailId     Int
-  scheduledTime     DateTime        // old: time
-  scheduleLocation  String?         @db.VarChar(255) // old: location
-  createdAt         DateTime?       @default(now())
-  updatedAt         DateTime?       @updatedAt
+eventScheduleId Int @id @default(autoincrement())
+eventDetailId Int
+scheduledTime DateTime
+scheduleLocation String? @db.VarChar(255)
+speakerName String @db.VarChar(255)
+speakerDesc String?
+createdAt DateTime? @default(now())
+updatedAt DateTime? @updatedAt
 
-  eventDetail       EventDetail     @relation(fields: [eventDetailId], references: [eventDetailId],onDelete: Cascade)
+eventDetail EventDetail @relation(fields: [eventDetailId], references: [eventDetailId],onDelete: Cascade)
 }
 
 model MentorshipProgram {
-  mentorshipProgramId Int          @id @default(autoincrement())
-  mentorProfileId     Int
-  menteeProfileId     Int
-  startDate           DateTime     // old: startDate
-  endDate             DateTime?    // old: endDate
-  mentorshipStatus    MentorshipStatus @default(active) // old: status
-  createdAt           DateTime?    @default(now())
-  updatedAt           DateTime?    @updatedAt
+mentorshipProgramId Int @id @default(autoincrement())
+mentorProfileId Int
+menteeProfileId Int
+startDate DateTime
+endDate DateTime?
+mentorshipStatus MentorshipStatus @default(active)
+createdAt DateTime? @default(now())
+updatedAt DateTime? @updatedAt
 
-  mentorProfile       UserProfile  @relation("Mentor", fields: [mentorProfileId], references: [userProfileId])
-  menteeProfile       UserProfile  @relation("Mentee", fields: [menteeProfileId], references: [userProfileId])
+mentorProfile UserProfile @relation("Mentor", fields: [mentorProfileId], references: [userProfileId])
+menteeProfile UserProfile @relation("Mentee", fields: [menteeProfileId], references: [userProfileId])
 }
 
 model Message {
-  messageId    BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
-  senderId     BigInt    @db.UnsignedBigInt // old: from_user
-  recipientId  BigInt    @db.UnsignedBigInt // old: to_user
-  messageContent String  @db.Text // old: content
-  sentAt       DateTime? @db.Timestamp(0) // old: created_at
-  updatedAt    DateTime? @db.Timestamp(0) // old: updated_at
+messageId BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+senderId BigInt @db.UnsignedBigInt
+recipientId BigInt @db.UnsignedBigInt
+messageContent String @db.Text
+sentAt DateTime? @db.Timestamp(0)
+updatedAt DateTime? @db.Timestamp(0)
 }
 
 enum UserRole {
-  user
-  admin
-  mentor
+user
+admin
+mentor
 }
 
 enum TicketType {
-  regular
-  student
-  vip
+regular
+student
+vip
 }
 
 enum PaymentStatus {
-  pending
-  completed
-  failed
+pending
+completed
+failed
 }
 
 enum SubmissionStatus {
-  submitted
-  under_review
-  accepted
-  rejected
+submitted
+under_review
+accepted
+rejected
 }
 
 enum MentorshipStatus {
-  active
-  completed
-  cancelled
+active
+completed
+cancelled
 }

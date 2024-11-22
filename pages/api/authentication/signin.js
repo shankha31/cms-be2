@@ -27,8 +27,7 @@ async function handler(req, res) {
     if (!item) {
       return res.status(404).json({ message: "Invalid credentials" });
     }
-
-    // Compare the password with the stored hashed password
+    
     const passwordMatches = await bcrypt.compare(password, item.hashedPassword);  // Update to hashedPassword
 
     if (passwordMatches) {
