@@ -42,7 +42,7 @@ export default async (req, res) => {
       console.log(files);
 
       // Extract necessary fields from the form data
-      const { paperTitle, abstract, eventId } = fields;
+      const { paperTitle, abstract, eventId, expertiseId } = fields;
       const paperUpload = files.paperUpload;
 
       // Create new submission record in the database
@@ -56,6 +56,14 @@ export default async (req, res) => {
         },
       });
       submissionId = newSubmission.submissionRecordId;
+      var expertise = expertiseId[0].split(",");
+      submissionId = newSubmission.submissionRecordId;
+      await prisma.submissionExpertise.createMany({
+        data: expertise.map((exp) => ({
+          submissionRecordId: submissionId,
+          expertiseId: parseInt(exp),
+        })),
+      });
 
       // Handling the file renaming and saving
       let newFilename = paperUpload[0].newFilename;

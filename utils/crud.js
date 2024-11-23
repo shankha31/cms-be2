@@ -75,6 +75,7 @@ const deleteItem = async (modelName, req, res) => {
 };
 
 const listItem = async (modelName, req, res, includeRelations = {}) => {
+  // console.log(req);
   try {
     if (modelName === "eventSchedule") {
       const items = await prisma.eventSchedule.findMany({

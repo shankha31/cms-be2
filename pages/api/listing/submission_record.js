@@ -29,33 +29,45 @@ async function handler(req, res) {
 
       // Fetch user from the database using email (make sure this corresponds to your schema)
       const user = await prisma.userProfile.findUnique({
-        where: {
-          emailAddress: email,  // Assuming emailAddress is used as the unique field
-        }
+        where: { emailAddress: email },
+        include: { userExpertise: { select: { expertiseId: true } } },
       });
+
 
       if (!user) {
         return res.status(404).json({ error: "Participant not found" });
       }
 
-      const userId = user.userProfileId;  // Use userProfileId to reference the user in SubmissionRecord
 
-      console.log(userId);
-
-      // Fetch submissions for all other participants except the current user
-      const submissions = await prisma.submissionRecord.findMany({
+      if (!user) {
+        return res.status(404).json({ error: "Participant not found" });
+      }
+      const userExpertiseIds = user.userExpertise.map((ue) => ue.expertiseId);
+      const userProfileId = user.userProfileId;
+      console.log(userProfileId)
+      const submission = await prisma.submissionRecord.findMany({
         where: {
-          userProfileId: {
-            not: userId,  // Exclude the submissions from the current user
-          },
+          AND: [
+            { userProfileId: { not: userProfileId } }, // Exclude submissions by the user
+            {
+              submissionExpertise: {
+                some: {
+                  expertiseId: {
+                    in: userExpertiseIds, // Match expertise
+                  },
+                },
+              },
+            },
+          ],
         },
         include: {
-          userProfile: true,  // Include the userProfile to get details about the submitter if needed
+          submissionExpertise: { include: { expertise: true } }, // Include expertise details
+          userProfile: true, // Include user details for context
         },
       });
 
       // Return the submissions for peer review
-      return res.status(200).json({ submissions });
+      return res.status(200).json({ submission });
 
     } catch (error) {
       console.error(error);
