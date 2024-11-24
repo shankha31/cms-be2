@@ -14,9 +14,10 @@ export default async function handler(req, res) {
   console.log(req.body);
 
   if (req.method === "POST") {
-    const { firstName, lastName, email, password, userRole, description, expertise } = req.body;
+    
 
     try {
+      const { firstName, lastName, email, password, userRole, expertise, description } = req.body;
       // Hash the password before storing it
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -31,16 +32,17 @@ export default async function handler(req, res) {
           description,
         },
       });
+      console.log(user);
 
-      
-        // Map user to expertise
-        await prisma.userExpertise.createMany({
-          data: expertise.map((exp) => ({
-            userProfileId: user.userProfileId,
-            expertiseId: exp.expertiseId,
-          })),
-        });
-      
+
+      //Map user to expertise
+      await prisma.userExpertise.createMany({
+        data: expertise?.map((exp) => ({
+          userProfileId: user.userProfileId,
+          expertiseId: exp,
+        })),
+      });
+
 
       return res.status(201).json({ message: "Registration Successful", user });
     } catch (error) {

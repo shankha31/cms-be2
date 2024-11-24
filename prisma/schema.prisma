@@ -24,6 +24,8 @@ userExpertise UserExpertise[]
 feedbackGiven Feedback[] @relation("EvaluatorFeedback")
 mentorshipAsMentor MentorshipProgram[] @relation("Mentor")
 mentorshipAsMentee MentorshipProgram[] @relation("Mentee")
+messages_messages_from_userTousers messages[]        @relation("messages_from_userTousers")
+messages_messages_to_userTousers   messages[]        @relation("messages_to_userTousers")
 }
 
 model EventDetail {
@@ -118,14 +120,20 @@ mentorProfile UserProfile @relation("Mentor", fields: [mentorProfileId], referen
 menteeProfile UserProfile @relation("Mentee", fields: [menteeProfileId], references: [userProfileId])
 }
 
-model Message {
-messageId BigInt @id @default(autoincrement()) @db.UnsignedBigInt
-senderId BigInt @db.UnsignedBigInt
-recipientId BigInt @db.UnsignedBigInt
-messageContent String @db.Text
-sentAt DateTime? @db.Timestamp(0)
-updatedAt DateTime? @db.Timestamp(0)
+model messages {
+  id                              Int    @id @default(autoincrement()) 
+  from_user                       Int    
+  to_user                         Int    
+  content                         String    @db.Text
+  created_at                      DateTime? @default(now())
+  updated_at                      DateTime? @db.Timestamp(0)
+  users_messages_from_userTousers UserProfile     @relation("messages_from_userTousers", fields: [from_user], references: [userProfileId], onDelete: Cascade, onUpdate: NoAction, map: "messages_from_user_foreign")
+  users_messages_to_userTousers   UserProfile     @relation("messages_to_userTousers", fields: [to_user], references: [userProfileId], onDelete: Cascade, onUpdate: NoAction, map: "messages_to_user_foreign")
+
+  @@index([from_user], map: "messages_from_user_foreign")
+  @@index([to_user], map: "messages_to_user_foreign")
 }
+
 model Expertise {
 expertiseId Int @id @default(autoincrement())
 expertiseName String @unique @db.VarChar(100)
